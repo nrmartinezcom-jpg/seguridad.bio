@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Simulación BTL Mi Huella - Desbloqueo de 10 Segundos</title>
+    <style>
+        /* Estilos CSS */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #000;
+            flex-direction: column;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        p {
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            text-align: center;
+        }
+
+        /* Contenedor del Logo Interactivo */
+        #logo-interactivo {
+            width: 300px;
+            height: auto;
+            position: relative;
+            cursor: pointer;
+            transition: box-shadow 0.3s ease-out, border 0.3s ease-out;
+            border-radius: 10%;
+            border: 5px solid transparent;
+        }
+
+        #logo-interactivo img {
+            width: 100%;
+            height: auto;
+            display: block;
+            filter: grayscale(20%) brightness(80%);
+            transition: filter 0.3s ease-out;
+        }
+
+        /* Clase de Activación (Efecto de brillo verde) */
+        .glowing-logo {
+            box-shadow: 0 0 40px rgba(0, 255, 0, 0.8), 0 0 20px rgba(0, 255, 0, 0.5);
+            border-color: #00ff00;
+        }
+
+        .glowing-logo img {
+            filter: grayscale(0%) brightness(100%);
+        }
+
+        /* Estilos para el Contador de Tiempo */
+        #timer-display {
+            font-size: 3em;
+            font-weight: bold;
+            color: #ccc;
+            margin-top: 30px;
+            height: 50px;
+            transition: color 0.5s;
+        }
+
+        .timer-active {
+            color: #00ff00;
+        }
+        
+        #mensaje {
+            margin-top: 10px;
+            color: #fff;
+            font-size: 1.2em; 
+            text-align: center;
+            min-height: 30px;
+        }
+    </style>
+</head>
+<body>
+
+    <p>
+        **Haga clic en el logo para desbloquear el chip (10 segundos):**
+    </p>
+
+    <div id="logo-interactivo">
+        <img src="logo_mi_huella.png" alt="Logo de Mi Huella con candado y huella digital">
+    </div>
+
+    <div id="timer-display"></div>
+    <div id="mensaje"></div>
+
+    <audio id="audio-btl" preload="auto">
+        <source src="audio_mi_huella_btl.mp3" type="audio/mp3">
+        Tu navegador no soporta la reproducción de audio.
+    </audio>
+
+    <script>
+        // Lógica JavaScript
+        const logoInteractivo = document.getElementById('logo-interactivo');
+        const audio = document.getElementById('audio-btl');
+        const mensajeDisplay = document.getElementById('mensaje');
+        const timerDisplay = document.getElementById('timer-display');
+        let countdownInterval;
+
+        function startCountdown() {
+            let timeLeft = 10;
+            timerDisplay.textContent = timeLeft;
+            timerDisplay.classList.add('timer-active');
+            logoInteractivo.classList.add('glowing-logo');
+            // Este mensaje será inmediatamente sobrescrito por el mensaje del audio
+            mensajeDisplay.textContent = "¡CHIP DESBLOQUEADO!"; 
+
+            countdownInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = timeLeft;
+
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    timerDisplay.textContent = "0";
+                    timerDisplay.classList.remove('timer-active');
+                    logoInteractivo.classList.remove('glowing-logo');
+                    mensajeDisplay.textContent = "CHIP BLOQUEADO (Toque para desbloquear)";
+                } else if (timeLeft === 7) { 
+                    // Cambiamos el mensaje para que no quede el de "¡PAGO SEGURO!"
+                    // todo el tiempo, si es que el audio ya terminó
+                    if (mensajeDisplay.textContent === "¡PAGO SEGURO! Tu huella es la llave.") {
+                       // Si el audio sigue activo o recién terminó
+                       mensajeDisplay.textContent = "CHIP DESBLOQUEADO (Aún tiene tiempo)";
+                    }
+                }
+            }, 1000); // 1000 ms = 1 segundo
+        }
+
+        logoInteractivo.addEventListener('click', function() {
+            // Detener cualquier cuenta regresiva anterior
+            clearInterval(countdownInterval);
+            
+            // 1. Iniciar el contador y efectos visuales INMEDIATAMENTE
+            startCountdown(); 
+            
+            // 2. REPRODUCCIÓN DE AUDIO INMEDIATA (Solución para móviles)
+            audio.pause();
+            audio.currentTime = 0;
+            
+            audio.play().then(() => {
+                // Mostrar mensaje del audio mientras se reproduce
+                mensajeDisplay.textContent = "¡PAGO SEGURO! Tu huella es la llave.";
+            }).catch(error => {
+                console.error("Error al reproducir audio:", error);
+                // En caso de error, aseguramos un mensaje visual
+                mensajeDisplay.textContent = "¡CHIP DESBLOQUEADO! (Error en audio)";
+            });
+            
+            // EL BLOQUE setTimeout DE 5 SEGUNDOS HA SIDO ELIMINADO para permitir la reproducción.
+        });
+
+        // Estado inicial
+        document.addEventListener('DOMContentLoaded', () => {
+             mensajeDisplay.textContent = "CHIP BLOQUEADO (Toque para desbloquear)";
+             timerDisplay.textContent = "10";
+        });
+    </script>
+</body>
+</html>
