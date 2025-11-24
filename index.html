@@ -11,10 +11,18 @@
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            background-color: #000;
+            /* FONDO GRIS OSCURO */
+            background-color: #333; 
+            position: relative; 
             flex-direction: column;
             color: white;
             font-family: Arial, sans-serif;
+        }
+
+        /* Contenido Centrado */
+        p, #timer-display, #mensaje {
+            position: relative;
+            z-index: 5; 
         }
 
         p {
@@ -23,32 +31,51 @@
             text-align: center;
         }
 
-        /* Contenedor del Logo Interactivo */
-        #logo-interactivo {
-            width: 300px;
+        /* Logo Estático en la Esquina Superior Derecha */
+        #logo-estatico {
+            width: 150px; 
             height: auto;
-            position: relative;
-            cursor: pointer;
-            transition: box-shadow 0.3s ease-out, border 0.3s ease-out;
-            border-radius: 10%;
-            border: 5px solid transparent;
+            position: absolute; 
+            top: 20px; 
+            right: 20px; 
+            z-index: 10; 
         }
-
-        #logo-interactivo img {
+        #logo-estatico img {
             width: 100%;
             height: auto;
             display: block;
             filter: grayscale(20%) brightness(80%);
-            transition: filter 0.3s ease-out;
         }
 
-        /* Clase de Activación (Efecto de brillo verde) */
-        .glowing-logo {
+        /* Huella Interactiva en el Centro */
+        #huella-interactiva {
+            position: relative;
+            cursor: pointer;
+            width: 300px; 
+            transition: box-shadow 0.3s ease-out, border 0.3s ease-out;
+            border-radius: 50%; 
+            z-index: 5;
+            padding: 10px; 
+        }
+        
+        #huella-interactiva img {
+            width: 100%;
+            height: auto;
+            display: block;
+            /* Estilo de la huella sutil en el centro (usando el archivo que subiste) */
+            opacity: 0.15; 
+            filter: grayscale(100%) brightness(300%);
+            transition: opacity 0.3s, filter 0.3s;
+        }
+
+        /* Clase de Activación (Efecto de brillo verde aplicado a la huella) */
+        .glowing-active {
             box-shadow: 0 0 40px rgba(0, 255, 0, 0.8), 0 0 20px rgba(0, 255, 0, 0.5);
             border-color: #00ff00;
         }
 
-        .glowing-logo img {
+        .glowing-active img {
+            opacity: 1; /* La huella se ilumina completamente al activarse */
             filter: grayscale(0%) brightness(100%);
         }
 
@@ -77,12 +104,16 @@
 </head>
 <body>
 
+    <div id="logo-estatico">
+        <img src="logo_mi_huella.png" alt="Logo de Mi Huella">
+    </div>
+
     <p>
-        **Haga clic en el logo para desbloquear el chip (10 segundos):**
+        **Toque la huella para desbloquear el chip (10 segundos):**
     </p>
 
-    <div id="logo-interactivo">
-        <img src="logo_mi_huella.png" alt="Logo de Mi Huella con candado y huella digital">
+    <div id="huella-interactiva">
+        <img src="huella_bio.png" alt="Huella Digital Interactiva">
     </div>
 
     <div id="timer-display"></div>
@@ -95,7 +126,7 @@
 
     <script>
         // Lógica JavaScript
-        const logoInteractivo = document.getElementById('logo-interactivo');
+        const huellaInteractiva = document.getElementById('huella-interactiva');
         const audio = document.getElementById('audio-btl');
         const mensajeDisplay = document.getElementById('mensaje');
         const timerDisplay = document.getElementById('timer-display');
@@ -105,9 +136,8 @@
             let timeLeft = 10;
             timerDisplay.textContent = timeLeft;
             timerDisplay.classList.add('timer-active');
-            logoInteractivo.classList.add('glowing-logo');
-            // Este mensaje será inmediatamente sobrescrito por el mensaje del audio
-            mensajeDisplay.textContent = "¡CHIP DESBLOQUEADO!"; 
+            huellaInteractiva.classList.add('glowing-active');
+            mensajeDisplay.textContent = "¡CHIP DESBLOQUEADO!";
 
             countdownInterval = setInterval(() => {
                 timeLeft--;
@@ -117,27 +147,22 @@
                     clearInterval(countdownInterval);
                     timerDisplay.textContent = "0";
                     timerDisplay.classList.remove('timer-active');
-                    logoInteractivo.classList.remove('glowing-logo');
+                    huellaInteractiva.classList.remove('glowing-active');
                     mensajeDisplay.textContent = "CHIP BLOQUEADO (Toque para desbloquear)";
                 } else if (timeLeft === 7) { 
-                    // Cambiamos el mensaje para que no quede el de "¡PAGO SEGURO!"
-                    // todo el tiempo, si es que el audio ya terminó
-                    if (mensajeDisplay.textContent === "¡PAGO SEGURO! Tu huella es la llave.") {
-                       // Si el audio sigue activo o recién terminó
-                       mensajeDisplay.textContent = "CHIP DESBLOQUEADO (Aún tiene tiempo)";
-                    }
+                    mensajeDisplay.textContent = "CHIP DESBLOQUEADO (Aún tiene tiempo)";
                 }
-            }, 1000); // 1000 ms = 1 segundo
+            }, 1000); 
         }
 
-        logoInteractivo.addEventListener('click', function() {
+        huellaInteractiva.addEventListener('click', function() {
             // Detener cualquier cuenta regresiva anterior
             clearInterval(countdownInterval);
             
             // 1. Iniciar el contador y efectos visuales INMEDIATAMENTE
             startCountdown(); 
             
-            // 2. REPRODUCCIÓN DE AUDIO INMEDIATA (Solución para móviles)
+            // 2. REPRODUCCIÓN DE AUDIO INMEDIATA 
             audio.pause();
             audio.currentTime = 0;
             
@@ -146,11 +171,9 @@
                 mensajeDisplay.textContent = "¡PAGO SEGURO! Tu huella es la llave.";
             }).catch(error => {
                 console.error("Error al reproducir audio:", error);
-                // En caso de error, aseguramos un mensaje visual
-                mensajeDisplay.textContent = "¡CHIP DESBLOQUEADO! (Error en audio)";
+                mensajeDisplay.textContent = "¡CHIP DESBLOQUEADO! (Audio no disponible)";
             });
-            
-            // EL BLOQUE setTimeout DE 5 SEGUNDOS HA SIDO ELIMINADO para permitir la reproducción.
+
         });
 
         // Estado inicial
