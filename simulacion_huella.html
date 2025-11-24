@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Simulación BTL Mi Huella - Desbloqueo de 10 Segundos</title>
+    <style>
+        /* Estilos CSS */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            /* FONDO GRIS OSCURO */
+            background-color: #333; 
+            position: relative; 
+            flex-direction: column;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Contenido Centrado */
+        p, #timer-display, #mensaje {
+            position: relative;
+            z-index: 5; 
+        }
+
+        p {
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            text-align: center;
+        }
+
+        /* Logo Estático en la Esquina Superior Derecha */
+        #logo-estatico {
+            width: 150px; 
+            height: auto;
+            position: absolute; 
+            top: 20px; 
+            right: 20px; 
+            z-index: 10; 
+        }
+        #logo-estatico img {
+            width: 100%;
+            height: auto;
+            display: block;
+            filter: grayscale(20%) brightness(80%);
+        }
+
+        /* Huella Interactiva en el Centro */
+        #huella-interactiva {
+            position: relative;
+            cursor: pointer;
+            width: 300px; 
+            transition: box-shadow 0.3s ease-out, border 0.3s ease-out;
+            border-radius: 50%; 
+            z-index: 5;
+            padding: 10px; 
+        }
+        
+        #huella-interactiva img {
+            width: 100%;
+            height: auto;
+            display: block;
+            /* Estilo de la huella sutil en el centro (usando el archivo que subiste) */
+            opacity: 0.15; 
+            filter: grayscale(100%) brightness(300%);
+            transition: opacity 0.3s, filter 0.3s;
+        }
+
+        /* Clase de Activación (Efecto de brillo verde aplicado a la huella) */
+        .glowing-active {
+            box-shadow: 0 0 40px rgba(0, 255, 0, 0.8), 0 0 20px rgba(0, 255, 0, 0.5);
+            border-color: #00ff00;
+        }
+
+        .glowing-active img {
+            opacity: 1; /* La huella se ilumina completamente al activarse */
+            filter: grayscale(0%) brightness(100%);
+        }
+
+        /* Estilos para el Contador de Tiempo */
+        #timer-display {
+            font-size: 3em;
+            font-weight: bold;
+            color: #ccc;
+            margin-top: 30px;
+            height: 50px;
+            transition: color 0.5s;
+        }
+
+        .timer-active {
+            color: #00ff00;
+        }
+        
+        #mensaje {
+            margin-top: 10px;
+            color: #fff;
+            font-size: 1.2em; 
+            text-align: center;
+            min-height: 30px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="logo-estatico">
+        <img src="logo_mi_huella.png" alt="Logo de Mi Huella">
+    </div>
+
+    <p>
+        **Toque la huella para desbloquear el chip (10 segundos):**
+    </p>
+
+    <div id="huella-interactiva">
+        <img src="huella_bio.png" alt="Huella Digital Interactiva">
+    </div>
+
+    <div id="timer-display"></div>
+    <div id="mensaje"></div>
+
+    <audio id="audio-btl" preload="auto">
+        <source src="audio_mi_huella_btl.mp3" type="audio/mp3">
+        Tu navegador no soporta la reproducción de audio.
+    </audio>
+
+    <script>
+        // Lógica JavaScript
+        const huellaInteractiva = document.getElementById('huella-interactiva');
+        const audio = document.getElementById('audio-btl');
+        const mensajeDisplay = document.getElementById('mensaje');
+        const timerDisplay = document.getElementById('timer-display');
+        let countdownInterval;
+
+        function startCountdown() {
+            let timeLeft = 10;
+            timerDisplay.textContent = timeLeft;
+            timerDisplay.classList.add('timer-active');
+            huellaInteractiva.classList.add('glowing-active');
+            mensajeDisplay.textContent = "¡CHIP DESBLOQUEADO!";
+
+            countdownInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = timeLeft;
+
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    timerDisplay.textContent = "0";
+                    timerDisplay.classList.remove('timer-active');
+                    huellaInteractiva.classList.remove('glowing-active');
+                    mensajeDisplay.textContent = "CHIP BLOQUEADO (Toque para desbloquear)";
+                } else if (timeLeft === 7) { 
+                    mensajeDisplay.textContent = "CHIP DESBLOQUEADO (Aún tiene tiempo)";
+                }
+            }, 1000); 
+        }
+
+        huellaInteractiva.addEventListener('click', function() {
+            // Detener cualquier cuenta regresiva anterior
+            clearInterval(countdownInterval);
+            
+            // 1. Iniciar el contador y efectos visuales INMEDIATAMENTE
+            startCountdown(); 
+            
+            // 2. REPRODUCCIÓN DE AUDIO INMEDIATA 
+            audio.pause();
+            audio.currentTime = 0;
+            
+            audio.play().then(() => {
+                // Mostrar mensaje del audio mientras se reproduce
+                mensajeDisplay.textContent = "¡PAGO SEGURO! Tu huella es la llave.";
+            }).catch(error => {
+                console.error("Error al reproducir audio:", error);
+                mensajeDisplay.textContent = "¡CHIP DESBLOQUEADO! (Audio no disponible)";
+            });
+
+        });
+
+        // Estado inicial
+        document.addEventListener('DOMContentLoaded', () => {
+             mensajeDisplay.textContent = "CHIP BLOQUEADO (Toque para desbloquear)";
+             timerDisplay.textContent = "10";
+        });
+    </script>
+</body>
+</html>
